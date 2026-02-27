@@ -3,3 +3,4 @@ logs/*.log
 .locks/
 .env
 .DS_Store
+com.mac-house-keep.docker-cleanup.plist

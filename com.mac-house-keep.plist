@@ -3,16 +3,16 @@
 <plist version="1.0">
 <dict>
     <key>Label</key>
-    <string>com.mac-house-keep.docker-cleanup</string>
+    <string>com.mac-house-keep</string>
     <key>ProgramArguments</key>
     <array>
-        <string>/Users/osamayusuf/repos/mac-house-keep/scripts/docker-cleanup.sh</string>
+        <string>/CHANGE/THIS/PATH/TO/mac-house-keep/scripts/run-all.sh</string>
     </array>
     <key>StartInterval</key>
     <integer>259200</integer>
     <key>StandardOutPath</key>
-    <string>/Users/osamayusuf/repos/mac-house-keep/logs/launchd.log</string>
+    <string>/CHANGE/THIS/PATH/TO/mac-house-keep/logs/launchd.log</string>
     <key>StandardErrorPath</key>
-    <string>/Users/osamayusuf/repos/mac-house-keep/logs/launchd.log</string>
+    <string>/CHANGE/THIS/PATH/TO/mac-house-keep/logs/launchd.log</string>
 </dict>
 </plist>
