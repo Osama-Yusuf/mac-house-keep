@@ -95,7 +95,7 @@ launchctl load ~/Library/LaunchAgents/com.mac-house-keep.plist
 launchctl list | grep mac-house-keep
 ```
 
-**Unload:**
+**Unload (only if you want to stop/remove the automation):**
 
 ```bash
 launchctl unload ~/Library/LaunchAgents/com.mac-house-keep.plist
