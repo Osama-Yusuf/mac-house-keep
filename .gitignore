@@ -1,0 +1,5 @@
+config/email.conf
+logs/*.log
+.locks/
+.env
+.DS_Store
