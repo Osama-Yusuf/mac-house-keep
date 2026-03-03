@@ -4,8 +4,8 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-# shellcheck source=common.sh
-source "$SCRIPT_DIR/common.sh"
+# shellcheck source=../utils/common.sh
+source "$SCRIPT_DIR/../utils/common.sh"
 
 load_config
 acquire_lock

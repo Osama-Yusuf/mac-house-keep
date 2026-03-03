@@ -1,0 +1,17 @@
+# KeePass backup configuration
+# Copy this file to config/keepass.conf and edit the values
+
+# Path to your .kdbx database file
+KDBX_SOURCE="$HOME/Library/CloudStorage/GoogleDrive-youremail@gmail.com/My Drive/keepass/local.kdbx"
+
+# Backup mode: "local", "remote", or "both"
+BACKUP_MODE="both"
+
+# --- Local backup settings ---
+BACKUP_DIR="$HOME/.keepass-backups"
+MAX_BACKUPS=30  # number of timestamped backups to keep
+
+# --- Remote backup settings (GitHub private repo) ---
+# The repo will be auto-created as private if it doesn't exist
+# Format: "username/repo-name" or just "repo-name" (uses your GitHub username)
+BACKUP_REPO="keepass-backup"
