@@ -34,11 +34,14 @@ chmod +x scripts/**/*.sh scripts/*.sh
 | `cleanup/docker.sh` | Stopped containers, unused images, volumes, networks, build cache | 5-50 GB |
 | `cleanup/homebrew.sh` | Cached downloads, old formula versions, orphaned deps | 2-15 GB |
 | `cleanup/xcode.sh` | DerivedData, archives, old simulators, device support, previews, caches | 20-100+ GB |
-| `cleanup/dev-caches.sh` | npm, yarn, pnpm, bun, pip, CocoaPods, Go, Cargo, Gradle, Maven, Composer, gem, Conda | 5-30 GB |
-| `cleanup/system.sh` | User caches, logs, crash reports, Trash | 2-15 GB |
-| `cleanup/old-downloads.sh` | `.dmg` and `.pkg` files older than 10 days in ~/Downloads | 2-30 GB |
+| `cleanup/dev-caches.sh` | npm, yarn, pnpm, bun, pip, uv, CocoaPods, Go, Cargo, Gradle, Maven, Composer, gem, Conda, node-gyp/TypeScript/Electron build caches, Android | 5-30 GB |
+| `cleanup/app-caches.sh` | Browser & Electron app caches under `~/Library/Application Support` (Chrome, Brave, Edge, Arc, Slack, Discord, Notion, Figma, Postman, Spotify, Stremio, VS Code, Cursor, Windsurf, Kiro). Apps you don't have are skipped automatically; running apps are skipped and cleaned on a later run. | 1-15 GB |
+| `cleanup/system.sh` | User caches, logs, crash reports, Mail attachment cache, QuickLook thumbnails, Trash; thins Time Machine *local* snapshots (external backups untouched) | 2-15 GB |
+| `cleanup/old-downloads.sh` | `.dmg`/`.pkg` installers and abandoned partial downloads (`.crdownload`, `.part`, `.partial`, Safari `.download`) older than 10 days in ~/Downloads | 2-30 GB |
 
 Everything cleaned is either a cache (auto-regenerates) or disposable junk. No personal data is touched.
+
+**Two honest caveats:** Spotify's offline downloads live in its cache and will re-download automatically after cleanup, and cleared package-manager caches (Go, Maven, Gradle, …) mean the next build re-fetches dependencies. Nothing breaks — things just re-download.
 
 ## Backup Scripts
 
@@ -164,9 +167,10 @@ mac-house-keep/
 │   │   ├── docker.sh              # Docker prune all unused resources
 │   │   ├── homebrew.sh            # Homebrew cache, old versions, orphaned deps
 │   │   ├── xcode.sh               # Xcode DerivedData, simulators, device support
-│   │   ├── dev-caches.sh          # Package manager caches (npm, pip, Go, etc.)
-│   │   ├── system.sh              # User caches, logs, crash reports, Trash
-│   │   └── old-downloads.sh       # Old .dmg/.pkg installers in ~/Downloads
+│   │   ├── dev-caches.sh          # Package manager caches (npm, pip, uv, Go, etc.)
+│   │   ├── app-caches.sh          # Browser/Electron app caches (Chrome, Slack, VS Code, ...)
+│   │   ├── system.sh              # User caches, logs, Mail cache, QuickLook, Trash, TM local snapshots
+│   │   └── old-downloads.sh       # Old installers + partial downloads in ~/Downloads
 │   ├── backup/
 │   │   ├── run-all.sh             # Run all backup scripts
 │   │   └── keepass.sh             # Daily timestamped KeePass database backup

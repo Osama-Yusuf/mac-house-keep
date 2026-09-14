@@ -10,6 +10,7 @@ scripts=(
     "$SCRIPT_DIR/homebrew.sh"
     "$SCRIPT_DIR/xcode.sh"
     "$SCRIPT_DIR/dev-caches.sh"
+    "$SCRIPT_DIR/app-caches.sh"
     "$SCRIPT_DIR/system.sh"
     "$SCRIPT_DIR/old-downloads.sh"
 )

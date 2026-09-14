@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# dev-caches-cleanup.sh — clean package manager caches (npm, yarn, pnpm, bun, pip, CocoaPods, Go, Cargo, Gradle, Composer, gem)
+# dev-caches-cleanup.sh — clean package manager caches (npm, yarn, pnpm, bun, pip, uv, CocoaPods, Go, Cargo, Gradle, Composer, gem, Conda, node build tools, Android)
 
 set -euo pipefail
 
@@ -61,6 +61,10 @@ clean_dir() {
 # --- npm ---
 
 clean_cmd "npm" npm cache clean --force
+
+# --- npx cache (not covered by npm cache clean; re-fetched on next npx run) ---
+
+clean_dir "npx cache" "$HOME/.npm/_npx"
 
 # --- yarn ---
 
@@ -124,6 +128,27 @@ clean_cmd "Ruby gems" gem cleanup
 if command -v conda &>/dev/null; then
     clean_cmd "Conda" conda clean --all --yes
 fi
+
+# --- uv (Python) ---
+
+clean_cmd "uv" uv cache clean
+
+# --- Node build/tooling caches under ~/.cache (all re-download on demand) ---
+# Note: ~/.cache/puppeteer is deliberately NOT cleaned — Puppeteer only fetches
+# its browser at install time, so deleting it breaks existing projects.
+
+clean_dir "node-gyp cache" "$HOME/.cache/node-gyp"
+clean_dir "TypeScript cache" "$HOME/.cache/typescript"
+clean_dir "Electron cache" "$HOME/.cache/electron"
+clean_dir "electron-builder cache" "$HOME/.cache/electron-builder"
+
+# --- Yarn Berry global cache ---
+
+clean_dir "Yarn Berry cache" "$HOME/.yarn/berry/cache"
+
+# --- Android emulator/SDK cache ---
+
+clean_dir "Android cache" "$HOME/.android/cache"
 
 # --- Disk space after ---
 

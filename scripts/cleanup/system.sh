@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# system-cleanup.sh — clean user caches, logs, crash reports, and Trash
+# system-cleanup.sh — clean user caches, logs, crash reports, Mail attachment cache,
+# QuickLook thumbnails, Trash, and thin Time Machine local snapshots
 
 set -euo pipefail
 
@@ -35,7 +36,7 @@ clean_dir() {
         local size
         size=$(safe_du "$dir")
         log "Cleaning $label ($size): $dir"
-        rm -rf "$dir"/* 2>/dev/null || true
+        rm -rf "${dir:?}"/* 2>/dev/null || true
         SUMMARY+="$label: $size cleaned\n"
     else
         log "Skipping $label (not found): $dir"
@@ -63,6 +64,10 @@ clean_dir "System Crash Reports" "/Library/Logs/DiagnosticReports"
 
 clean_dir "Mail Logs" "$HOME/Library/Containers/com.apple.mail/Data/Library/Logs"
 
+# --- Mail attachment cache (copies only — originals stay in the mailbox) ---
+
+clean_dir "Mail Downloads" "$HOME/Library/Containers/com.apple.mail/Data/Library/Mail Downloads"
+
 # --- Trash ---
 
 if [[ -d "$HOME/.Trash" ]]; then
@@ -72,6 +77,24 @@ if [[ -d "$HOME/.Trash" ]]; then
     SUMMARY+="Trash: $TRASH_SIZE emptied\n"
 else
     SUMMARY+="Trash: empty\n"
+fi
+
+# --- QuickLook thumbnail cache (thumbnails regenerate on demand) ---
+
+if command -v qlmanage &>/dev/null; then
+    log "Resetting QuickLook thumbnail cache"
+    qlmanage -r cache >/dev/null 2>&1 || true
+    SUMMARY+="QuickLook thumbnails: reset\n"
+fi
+
+# --- Time Machine LOCAL snapshots only (thinned exactly as macOS does under
+# --- disk pressure; backups on external/network disks are never touched) ---
+
+if command -v tmutil &>/dev/null; then
+    log "Running: tmutil thinlocalsnapshots / 999999999999 4"
+    output=$(tmutil thinlocalsnapshots / 999999999999 4 2>&1) || true
+    log "TM local snapshots: $output"
+    SUMMARY+="Time Machine local snapshots: $(echo "$output" | head -1)\n"
 fi
 
 # --- Disk space after ---

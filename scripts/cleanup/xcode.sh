@@ -31,7 +31,7 @@ clean_dir() {
         local size
         size=$(du -sh "$dir" 2>/dev/null | awk '{print $1}')
         log "Cleaning $label ($size): $dir"
-        rm -rf "$dir"/*
+        rm -rf "${dir:?}"/*
         SUMMARY+="$label: $size cleaned\n"
     else
         log "Skipping $label (not found): $dir"

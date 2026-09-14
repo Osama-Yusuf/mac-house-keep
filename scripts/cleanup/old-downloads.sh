@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
-# old-downloads-cleanup.sh — remove .dmg and .pkg files older than 10 days from ~/Downloads
+# old-downloads-cleanup.sh — remove .dmg/.pkg installers and abandoned partial
+# downloads (.crdownload, .part, .partial, Safari .download bundles) older than
+# 10 days from ~/Downloads
 
 set -euo pipefail
 
@@ -24,35 +26,44 @@ get_disk_avail() {
 SPACE_BEFORE=$(get_disk_avail)
 log "=== Downloads Cleanup Starting ==="
 log "Disk available before: ${SPACE_BEFORE}G"
-log "Removing .dmg and .pkg files older than ${MAX_AGE_DAYS} days from $DOWNLOADS_DIR"
+log "Removing installers and partial downloads older than ${MAX_AGE_DAYS} days from $DOWNLOADS_DIR"
 
 SUMMARY=""
 TOTAL_COUNT=0
 TOTAL_SIZE=0
 
-# --- Find and remove old .dmg files ---
+# Installers and abandoned partial downloads (Chrome, Firefox, curl/wget)
+FILE_PATTERNS=("*.dmg" "*.pkg" "*.crdownload" "*.part" "*.partial")
 
-while IFS= read -r -d '' file; do
-    size=$(stat -f%z "$file" 2>/dev/null || echo 0)
+remove_old_files() {
+    local pattern="$1"
+    while IFS= read -r -d '' file; do
+        size=$(stat -f%z "$file" 2>/dev/null || echo 0)
+        size_mb=$(( size / 1048576 ))
+        log "Removing: $(basename "$file") (${size_mb}MB)"
+        SUMMARY+="$(basename "$file") — ${size_mb}MB\n"
+        rm -f "$file"
+        TOTAL_COUNT=$((TOTAL_COUNT + 1))
+        TOTAL_SIZE=$((TOTAL_SIZE + size))
+    done < <(find "$DOWNLOADS_DIR" -maxdepth 1 -name "$pattern" -type f -mtime +${MAX_AGE_DAYS} -print0 2>/dev/null)
+}
+
+for pattern in "${FILE_PATTERNS[@]}"; do
+    remove_old_files "$pattern"
+done
+
+# --- Safari partial downloads (*.download bundles are directories) ---
+
+while IFS= read -r -d '' bundle; do
+    size_kb=$(du -sk "$bundle" 2>/dev/null | awk '{print $1}')
+    size=$(( ${size_kb:-0} * 1024 ))
     size_mb=$(( size / 1048576 ))
-    log "Removing: $(basename "$file") (${size_mb}MB)"
-    SUMMARY+="$(basename "$file") — ${size_mb}MB\n"
-    rm -f "$file"
+    log "Removing: $(basename "$bundle") (${size_mb}MB)"
+    SUMMARY+="$(basename "$bundle") — ${size_mb}MB\n"
+    rm -rf "$bundle"
     TOTAL_COUNT=$((TOTAL_COUNT + 1))
     TOTAL_SIZE=$((TOTAL_SIZE + size))
-done < <(find "$DOWNLOADS_DIR" -maxdepth 1 -name "*.dmg" -type f -mtime +${MAX_AGE_DAYS} -print0 2>/dev/null)
-
-# --- Find and remove old .pkg files ---
-
-while IFS= read -r -d '' file; do
-    size=$(stat -f%z "$file" 2>/dev/null || echo 0)
-    size_mb=$(( size / 1048576 ))
-    log "Removing: $(basename "$file") (${size_mb}MB)"
-    SUMMARY+="$(basename "$file") — ${size_mb}MB\n"
-    rm -f "$file"
-    TOTAL_COUNT=$((TOTAL_COUNT + 1))
-    TOTAL_SIZE=$((TOTAL_SIZE + size))
-done < <(find "$DOWNLOADS_DIR" -maxdepth 1 -name "*.pkg" -type f -mtime +${MAX_AGE_DAYS} -print0 2>/dev/null)
+done < <(find "$DOWNLOADS_DIR" -maxdepth 1 -name "*.download" -type d -mtime +${MAX_AGE_DAYS} -print0 2>/dev/null)
 
 TOTAL_SIZE_MB=$((TOTAL_SIZE / 1048576))
 
@@ -69,7 +80,7 @@ log "=== Downloads Cleanup Complete ==="
 if [[ $TOTAL_COUNT -gt 0 ]]; then
     EMAIL_BODY="Downloads cleanup completed on $(hostname) at $(date).
 
-Removed $TOTAL_COUNT installer(s) older than ${MAX_AGE_DAYS} days (${TOTAL_SIZE_MB}MB total).
+Removed $TOTAL_COUNT installer(s)/partial download(s) older than ${MAX_AGE_DAYS} days (${TOTAL_SIZE_MB}MB total).
 
 Disk space before: ${SPACE_BEFORE}G available
 Disk space after:  ${SPACE_AFTER}G available
@@ -80,7 +91,7 @@ $(echo -e "$SUMMARY")"
 else
     EMAIL_BODY="Downloads cleanup completed on $(hostname) at $(date).
 
-No .dmg or .pkg files older than ${MAX_AGE_DAYS} days found in $DOWNLOADS_DIR.
+No installers or partial downloads older than ${MAX_AGE_DAYS} days found in $DOWNLOADS_DIR.
 
 Disk space: ${SPACE_BEFORE}G available"
 fi
